@@ -1,59 +1,70 @@
 
 
-"""
-    punto #1 Base de datos
+# """
+#     punto #1 Base de datos
 
-    TODO
-        1 - coneccion
-        2 - crear tablas
-            cajeros /cajero_id
-            transaccion /id_cajero/id_usuario/fecha/tipo/saldos/
-            usuarios
-            cuentas / id_cajero/ n_cuenta/ id_usuario / saldo_disponible
+#     TODO
+#         1 - coneccion
+#         2 - crear tablas
+#             cajeros /cajero_id
+#             transaccion /id_cajero/id_usuario/fecha/tipo/saldos/
+#             usuarios
+#             cuentas / id_cajero/ n_cuenta/ id_usuario / saldo_disponible
 
-        3 - C R U D
-"""
+#         3 - C R U D
+# """
 
-"""
-    punto #2 Flask Web Server
+# """
+#     punto #2 Flask Web Server
 
-    TODO
-        1 - coneccion
-        2 - crear tablas
-            cajeros /cajero_id
-            transaccion /id_cajero/id_usuario/fecha/tipo/saldos/
-            usuarios
-            cuentas / id_cajero/ n_cuenta/ id_usuario / saldo_disponible
+#     TODO
+#         1 - coneccion
+#         2 - crear tablas
+#             cajeros /cajero_id
+#             transaccion /id_cajero/id_usuario/fecha/tipo/saldos/
+#             usuarios
+#             cuentas / id_cajero/ n_cuenta/ id_usuario / saldo_disponible
 
-        3 - C R U D
-"""
+#         3 - C R U D
+# """
 
-"""
-    punto #3 Los hilos
+# """
+#     punto #3 Los hilos
 
-    TODO
-        1 - coneccion
-        2 - crear tablas
-            cajeros /cajero_id
-            transaccion /id_cajero/id_usuario/fecha/tipo/saldos/
-            usuarios
-            cuentas / id_cajero/ n_cuenta/ id_usuario / saldo_disponible
+#     TODO
+#         1 - coneccion
+#         2 - crear tablas
+#             cajeros /cajero_id
+#             transaccion /id_cajero/id_usuario/fecha/tipo/saldos/
+#             usuarios
+#             cuentas / id_cajero/ n_cuenta/ id_usuario / saldo_disponible
 
-        3 - C R U D
-"""
+#         3 - C R U D
+# """
 
-
+from flask import Flask, jsonify, request
 import sqlite3
 import threading
 
+#*****************************************************************************
+# Instanciando servidor de flask
+#*****************************************************************************
+app = Flask(__name__)
+
 # Conexión a la base de datos
-conn = sqlite3.connect('database.db')
+conn = sqlite3.connect('database.db', check_same_thread=False)
 cursor = conn.cursor()
+
+# Creando tablas en DB
+def crear_tabla_usuarios():
+    cursor.execute("CREATE TABLE usuarios(name VARCHAR(80), email VARCHAR(80), image, rol, pin, saldo )")
+    conn.commit()
 
 
 #*****************************************************************************
 # Creando CRUD con la base de datos
 #*****************************************************************************
+
 
 # Función para leer todos los usuarios
 def obtener_usuarios():
@@ -83,6 +94,8 @@ def eliminar_usuario(id):
 
 
 
+
+
 #*****************************************************************************
 # Implementando metodos en hilos
 #*****************************************************************************
@@ -108,6 +121,72 @@ def eliminar_usuario_hilo(id):
     thread.start()
 
 
+
+
+#*****************************************************************************
+# Creando API
+#*****************************************************************************
+
+# Rutas
+@app.route("/")
+def hello_world():
+    return "<p>Hello, World!</p>"
+
+# Crear usuario en la base de datos
+@app.route("/usuarios", methods = ["POST"])
+def create_user():
+
+    name = request.json['name']
+    email = request.json['email']
+    image = request.json['image']
+    rol = request.json['rol']
+    pin = request.json['pin']
+    saldo = request.json['saldo']
+
+    def crear_usuario():
+        cursor.execute('''
+            INSERT INTO usuarios (name, email, image, rol, pin, saldo)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ''', (name, email, image, rol, pin, saldo))
+        conn.commit()
+
+    hilo = threading.Thread(target=crear_usuario, name="Insertar usuario - hilo")
+    hilo.start()
+    
+    return jsonify({'mensaje': 'Usuario creado correctamente'}), 201
+
+# Devuelve todos los usuarios en la base de datos
+@app.route('/usuarios', methods = ['GET'])
+def get_users():
+
+    usuarios_result = []
+
+    def obtener_usuarios():
+        cursor.execute('SELECT * FROM usuarios')
+        usuarios = cursor.fetchall()
+        usuarios_result.append(usuarios)   
+    
+    hilo = threading.Thread(target=obtener_usuarios)
+    hilo.start()
+    hilo.join()
+  
+    usuarios = usuarios_result[0] 
+    return jsonify(usuarios)
+
+
+
+
+    
+
+
+
+
+#*****************************************************************************
+# Corriendo el servidor flask api
+#*****************************************************************************
+if __name__ == '__main__':
+    app.run(debug=True)
+
 #*****************************************************************************
 # # Ejemplo de uso
 #*****************************************************************************
@@ -119,9 +198,7 @@ def eliminar_usuario_hilo(id):
 # actualizar_usuario_hilo(1, 'John Smith', 'john.smith@example.com')
 # eliminar_usuario_hilo(1)
 
-# Corriendo servidor
-if __name__ == '__main__':
-    socketio.run(app)
+
 # Cerrar la conexión a la base de datos
 conn.close()
 
