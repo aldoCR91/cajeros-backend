@@ -94,7 +94,6 @@ def create_user():
     def insert_user():
         # Bloquear de memoria
         lock.acquire()
-
         try:
             cursor.execute('''
                 INSERT INTO usuarios (name, email, image, rol, pin, saldo)
@@ -123,7 +122,8 @@ def create_user():
         try:
             cursor.execute('SELECT * FROM usuarios')
             usuarios = cursor.fetchall()
-            return usuarios
+            for u in usuarios:
+                users.push(u)
         finally:
             lock.release()
 
@@ -132,6 +132,8 @@ def create_user():
         thread = threading.Thread(target=obtener_usuarios)
         thread.start()
         thread.join()
+
+    return users
         
 #*****************************************************************************
 # Show usuario
