@@ -51,32 +51,107 @@ import threading
 #*****************************************************************************
 app = Flask(__name__)
 
+#*****************************************************************************
 # Conexión a la base de datos
+#*****************************************************************************
 conn = sqlite3.connect('database.db', check_same_thread=False)
 cursor = conn.cursor()
 
+#*****************************************************************************
+# Crear un objeto de bloqueo de memoria
+#*****************************************************************************
+lock = threading.Lock()
+
+#*****************************************************************************
 # Creando tablas en DB
+#*****************************************************************************
 def crear_tabla_usuarios():
     cursor.execute("CREATE TABLE usuarios(name VARCHAR(80), email VARCHAR(80), image, rol, pin, saldo )")
     conn.commit()
 
+#*****************************************************************************
+# Creando API rutas
+#*****************************************************************************
+
+#Prueba
+@app.route("/", methods = ["GET"])
+def hello_world():
+    return "<p>Hello, World proyecto cajeros!</p>"
+
 
 #*****************************************************************************
-# Creando CRUD con la base de datos
+# Create nuevo usuario
+#*****************************************************************************
+@app.route("/usuarios", methods = ["POST"])
+def create_user():
+    name = request.json['name']
+    email = request.json['email']
+    image = request.json['image']
+    rol = request.json['rol']
+    pin = request.json['pin']
+    saldo = request.json['saldo']
+
+    def insert_user():
+        # Bloquear de memoria
+        lock.acquire()
+
+        try:
+            cursor.execute('''
+                INSERT INTO usuarios (name, email, image, rol, pin, saldo)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ''', (name, email, image, rol, pin, saldo))
+            conn.commit()
+        finally:
+            # Liberar el bloqueo de memoria
+            lock.release()
+
+    hilo = threading.Thread(target=crear_usuario, name="Insertar usuario - hilo")
+    hilo.start()
+    hilo.join()
+    
+    return jsonify({'mensaje': 'Usuario creado correctamente'}), 201
+
+#*****************************************************************************
+# Read usuarios
+#*****************************************************************************
+@app.route("/usuarios", methods = ["GET"])
+    users = []
+    def obtener_usuarios():
+        # Bloquear de memoria
+        lock.acquire()
+
+        try:
+            cursor.execute('SELECT * FROM usuarios')
+            usuarios = cursor.fetchall()
+            return usuarios
+        finally:
+            lock.release()
+
+    # Obtener todos los usuarios en un hilo
+    def obtener_usuarios_hilo():
+        thread = threading.Thread(target=obtener_usuarios)
+        thread.start()
+        thread.join()
+        
+#*****************************************************************************
+# Show usuario
 #*****************************************************************************
 
+#*****************************************************************************
+# Update usuario
+#*****************************************************************************
 
-# Función para leer todos los usuarios
-def obtener_usuarios():
-    cursor.execute('SELECT * FROM usuarios')
-    usuarios = cursor.fetchall()
-    return usuarios
+#*****************************************************************************
+# delete usuario
+#*****************************************************************************
 
 # Función para leer un usuario por ID
 def obtener_usuario_por_id(id):
     cursor.execute('SELECT * FROM usuarios WHERE id = ?', (id,))
     usuario = cursor.fetchone()
     return usuario
+
+
 
 # Función para actualizar un usuario
 def actualizar_usuario(id, nombre, email):
@@ -100,10 +175,7 @@ def eliminar_usuario(id):
 # Implementando metodos en hilos
 #*****************************************************************************
 
-# Obtener todos los usuarios en un hilo
-def obtener_usuarios_hilo():
-    thread = threading.Thread(target=obtener_usuarios)
-    thread.start()
+
 
 # Obtener un usuario por ID en un hilo
 def obtener_usuario_por_id_hilo(id):
@@ -123,37 +195,8 @@ def eliminar_usuario_hilo(id):
 
 
 
-#*****************************************************************************
-# Creando API
-#*****************************************************************************
 
-# Rutas
-@app.route("/", methods = ["GET"])
-def hello_world():
-    return "<p>Hello, World!</p>"
 
-# Crear usuario en la base de datos
-@app.route("/usuarios", methods = ["POST"])
-def create_user():
-
-    name = request.json['name']
-    email = request.json['email']
-    image = request.json['image']
-    rol = request.json['rol']
-    pin = request.json['pin']
-    saldo = request.json['saldo']
-
-    def crear_usuario():
-        cursor.execute('''
-            INSERT INTO usuarios (name, email, image, rol, pin, saldo)
-            VALUES (?, ?, ?, ?, ?, ?)
-            ''', (name, email, image, rol, pin, saldo))
-        conn.commit()
-
-    hilo = threading.Thread(target=crear_usuario, name="Insertar usuario - hilo")
-    hilo.start()
-    
-    return jsonify({'mensaje': 'Usuario creado correctamente'}), 201
 
 # Devuelve todos los usuarios en la base de datos
 @app.route('/usuarios', methods = ['GET'])
