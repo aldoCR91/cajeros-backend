@@ -1,47 +1,5 @@
 
 
-# """
-#     punto #1 Base de datos
-
-#     TODO
-#         1 - coneccion
-#         2 - crear tablas
-#             cajeros /cajero_id
-#             transaccion /id_cajero/id_usuario/fecha/tipo/saldos/
-#             usuarios
-#             cuentas / id_cajero/ n_cuenta/ id_usuario / saldo_disponible
-
-#         3 - C R U D
-# """
-
-# """
-#     punto #2 Flask Web Server
-
-#     TODO
-#         1 - coneccion
-#         2 - crear tablas
-#             cajeros /cajero_id
-#             transaccion /id_cajero/id_usuario/fecha/tipo/saldos/
-#             usuarios
-#             cuentas / id_cajero/ n_cuenta/ id_usuario / saldo_disponible
-
-#         3 - C R U D
-# """
-
-# """
-#     punto #3 Los hilos
-
-#     TODO
-#         1 - coneccion
-#         2 - crear tablas
-#             cajeros /cajero_id
-#             transaccion /id_cajero/id_usuario/fecha/tipo/saldos/
-#             usuarios
-#             cuentas / id_cajero/ n_cuenta/ id_usuario / saldo_disponible
-
-#         3 - C R U D
-# """
-
 from flask import Flask, jsonify, request
 import sqlite3
 import threading
@@ -104,7 +62,7 @@ def create_user():
             # Liberar el bloqueo de memoria
             lock.release()
 
-    hilo = threading.Thread(target=crear_usuario, name="Insertar usuario - hilo")
+    hilo = threading.Thread(target=create_user, name="Insertar usuario - hilo")
     hilo.start()
     hilo.join()
     
@@ -115,30 +73,47 @@ def create_user():
 #*****************************************************************************
 @app.route("/usuarios", methods = ["GET"])
     users = []
-    def obtener_usuarios():
+    def get_users():
+        
         # Bloquear de memoria
         lock.acquire()
 
         try:
             cursor.execute('SELECT * FROM usuarios')
             usuarios = cursor.fetchall()
-            for u in usuarios:
-                users.push(u)
+            for user in usuarios:
+                users.push(user)
         finally:
             lock.release()
 
     # Obtener todos los usuarios en un hilo
-    def obtener_usuarios_hilo():
-        thread = threading.Thread(target=obtener_usuarios)
-        thread.start()
-        thread.join()
+    hilo = threading.Thread(target=get_users name="get_users-hilo")
+    hilo.start()
+    hilo.join()
 
     return users
         
 #*****************************************************************************
 # Show usuario
 #*****************************************************************************
+@app.route("/usuario", methods = ["GET"])
+    def get_user(id):
+        def show():
+            # bloqueo de memoriia
+            lock.acquire()
+            try:
+                cursor.execute('SELECT * FROM usuarios WHERE id = ?', (id,))
+                usuario = cursor.fetchone()
+                return usuario
+            finally:
+                lock.release
+            
+        hilo = threading.Thread(target=show)
+        thread.start()
 
+         
+
+        
 #*****************************************************************************
 # Update usuario
 #*****************************************************************************
