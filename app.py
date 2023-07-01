@@ -3,6 +3,7 @@
 from flask import Flask, jsonify, request
 import sqlite3
 import threading
+import queue
 
 #*****************************************************************************
 # Instanciando servidor de flask
@@ -21,11 +22,10 @@ cursor = conn.cursor()
 lock = threading.Lock()
 
 #*****************************************************************************
-# Creando tablas en DB
+# Creando tabla usuarios en DB
 #*****************************************************************************
-def crear_tabla_usuarios():
-    cursor.execute("CREATE TABLE usuarios(name VARCHAR(80), email VARCHAR(80), image, rol, pin, saldo )")
-    conn.commit()
+cursor.execute("CREATE TABLE IF NOT EXISTS usuarios(id INTEGER PRIMARY KEY AUTOINCREMENT ,name VARCHAR(80), email VARCHAR(80), image, rol, pin, saldo )")
+conn.commit()
 
 #*****************************************************************************
 # Creando API rutas
@@ -75,7 +75,7 @@ def create_user():
 @app.route('/usuarios', methods = ["GET"])
 def get_users():
 
-    def get_users_db():
+    def get_users_db(q: queue.Queue):
 
         # Bloquear de memoria
         lock.acquire()
@@ -88,41 +88,77 @@ def get_users():
             # Liberar el bloqueo de memoria
             lock.release()
 
-        return usuarios
+        q.put_nowait(usuarios)
 
+    # Cola para guardar el resultado del hilo.
+    q = queue.Queue()
     #Obtener todos los usuarios en un hilo
-    hilo = threading.Thread(target=get_users_db, name="Get users - hilo")
+    hilo = threading.Thread(target=get_users_db, name="Get users - hilo", args=(q,))
     hilo.start()
     hilo.join()
 
-    #print(usuarios_globales)
+    result = q.get_nowait()
 
-    return jsonify({'usuarios2': hilo.join()}), 200
+    return jsonify({'usuarios': result}), 200
         
 #*****************************************************************************
 # Show usuario
 #*****************************************************************************
-# @app.route("/usuario", methods = ["GET"])
-#     def get_user(id):
-#         def show():
-#             # bloqueo de memoriia
-#             lock.acquire()
-#             try:
-#                 cursor.execute('SELECT * FROM usuarios WHERE id = ?', (id,))
-#                 usuario = cursor.fetchone()
-#                 return usuario
-#             finally:
-#                 lock.release
-            
-#         hilo = threading.Thread(target=show)
-#         thread.start()
+@app.route("/usuario/<int:id>", methods = ["GET"])
+def get_user(id):
 
+    def get_user_db(q: queue.Queue):
+        # Adquirir el bloqueo de memoria
+        lock.acquire()
+        try:
+            cursor.execute('SELECT * FROM usuarios WHERE id = ?', (id,))
+            usuario = cursor.fetchone()
+        finally:
+            # Liberar el bloqueo de memoria
+            lock.release()
+        
+        q.put_nowait(usuario)
+
+    # Cola para guardar el resultado del hilo.
+    q = queue.Queue()
+
+    hilo = threading.Thread(target=get_user_db, name="Show user - hilo", args=(q,))
+    hilo.start()
+    hilo.join()
+
+    result = q.get_nowait()
+
+    return jsonify({'usuario': result }), 200
          
 
         
 #*****************************************************************************
 # Update usuario
 #*****************************************************************************
+@app.route('/usuario/<int:id>', methods=['PUT'])
+def update_user(id):
+    rol = request.json['rol']
+    pin = request.json['pin']
+    saldo = request.json['saldo']
+
+    def update_user_db():
+        # Adquirir el bloqueo de memoria
+        lock.acquire()
+
+        try:
+            cursor.execute('''
+                UPDATE usuarios SET rol = ?, pin = ?, saldo = ? WHERE id = ?
+            ''', (rol,pin,saldo,id))
+            conn.commit()
+        finally:
+            # Liberar el bloqueo de memoria
+            lock.release()
+
+    hilo = threading.Thread(target=update_user_db, name="Update user - hilo")
+    hilo.start()
+    hilo.join()
+
+    return jsonify({'msg': 'Usuario actualizado correctamente' }), 201
 
 #*****************************************************************************
 # delete usuario
