@@ -40,7 +40,7 @@ def hello_world():
 #*****************************************************************************
 # Create nuevo usuario
 #*****************************************************************************
-@app.route("/usuarios", methods = ["POST"])
+@app.route('/usuarios', methods = ['POST'])
 def create_user():
     name = request.json['name']
     email = request.json['email']
@@ -52,6 +52,7 @@ def create_user():
     def insert_user():
         # Bloquear de memoria
         lock.acquire()
+
         try:
             cursor.execute('''
                 INSERT INTO usuarios (name, email, image, rol, pin, saldo)
@@ -62,7 +63,7 @@ def create_user():
             # Liberar el bloqueo de memoria
             lock.release()
 
-    hilo = threading.Thread(target=create_user, name="Insertar usuario - hilo")
+    hilo = threading.Thread(target=insert_user, name="Insertar usuario - hilo")
     hilo.start()
     hilo.join()
     
@@ -71,45 +72,50 @@ def create_user():
 #*****************************************************************************
 # Read usuarios
 #*****************************************************************************
-@app.route("/usuarios", methods = ["GET"])
-    users = []
-    def get_users():
-        
+@app.route('/usuarios', methods = ["GET"])
+def get_users():
+
+    def get_users_db():
+
         # Bloquear de memoria
         lock.acquire()
 
         try:
             cursor.execute('SELECT * FROM usuarios')
             usuarios = cursor.fetchall()
-            for user in usuarios:
-                users.push(user)
+           
         finally:
+            # Liberar el bloqueo de memoria
             lock.release()
 
-    # Obtener todos los usuarios en un hilo
-    hilo = threading.Thread(target=get_users name="get_users-hilo")
+        return usuarios
+
+    #Obtener todos los usuarios en un hilo
+    hilo = threading.Thread(target=get_users_db, name="Get users - hilo")
     hilo.start()
     hilo.join()
 
-    return users
+    #print(usuarios_globales)
+
+    return jsonify({'usuarios2': hilo.join()}), 200
         
 #*****************************************************************************
 # Show usuario
 #*****************************************************************************
-@app.route("/usuario", methods = ["GET"])
-    def get_user(id):
-        def show():
-            # bloqueo de memoriia
-            lock.acquire()
-            try:
-                cursor.execute('SELECT * FROM usuarios WHERE id = ?', (id,))
-                usuario = cursor.fetchone()
-                return usuario
-            finally:
-                lock.release
+# @app.route("/usuario", methods = ["GET"])
+#     def get_user(id):
+#         def show():
+#             # bloqueo de memoriia
+#             lock.acquire()
+#             try:
+#                 cursor.execute('SELECT * FROM usuarios WHERE id = ?', (id,))
+#                 usuario = cursor.fetchone()
+#                 return usuario
+#             finally:
+#                 lock.release
             
-        hilo = threading.Thread(target=show)
-        thread.start()
+#         hilo = threading.Thread(target=show)
+#         thread.start()
 
          
 
@@ -123,26 +129,26 @@ def create_user():
 #*****************************************************************************
 
 # Función para leer un usuario por ID
-def obtener_usuario_por_id(id):
-    cursor.execute('SELECT * FROM usuarios WHERE id = ?', (id,))
-    usuario = cursor.fetchone()
-    return usuario
+# def obtener_usuario_por_id(id):
+#     cursor.execute('SELECT * FROM usuarios WHERE id = ?', (id,))
+#     usuario = cursor.fetchone()
+#     return usuario
 
 
 
 # Función para actualizar un usuario
-def actualizar_usuario(id, nombre, email):
-    cursor.execute('''
-        UPDATE usuarios
-        SET nombre = ?, email = ?
-        WHERE id = ?
-    ''', (nombre, email, id))
-    conn.commit()
+# def actualizar_usuario(id, nombre, email):
+#     cursor.execute('''
+#         UPDATE usuarios
+#         SET nombre = ?, email = ?
+#         WHERE id = ?
+#     ''', (nombre, email, id))
+#     conn.commit()
 
 # Función para eliminar un usuario
-def eliminar_usuario(id):
-    cursor.execute('DELETE FROM usuarios WHERE id = ?', (id,))
-    conn.commit()
+# def eliminar_usuario(id):
+#     cursor.execute('DELETE FROM usuarios WHERE id = ?', (id,))
+#     conn.commit()
 
 
 
@@ -154,44 +160,44 @@ def eliminar_usuario(id):
 
 
 
-# Obtener un usuario por ID en un hilo
-def obtener_usuario_por_id_hilo(id):
-    thread = threading.Thread(target=obtener_usuario_por_id, args=(id,))
-    thread.start()
+# # Obtener un usuario por ID en un hilo
+# def obtener_usuario_por_id_hilo(id):
+#     thread = threading.Thread(target=obtener_usuario_por_id, args=(id,))
+#     thread.start()
 
-# Actualizar un usuario en un hilo
-def actualizar_usuario_hilo(id, nombre, email):
-    thread = threading.Thread(target=actualizar_usuario, args=(id, nombre, email))
-    thread.start()
+# # Actualizar un usuario en un hilo
+# def actualizar_usuario_hilo(id, nombre, email):
+#     thread = threading.Thread(target=actualizar_usuario, args=(id, nombre, email))
+#     thread.start()
 
-# Eliminar un usuario en un hilo
-def eliminar_usuario_hilo(id):
-    thread = threading.Thread(target=eliminar_usuario, args=(id,))
-    thread.start()
-
-
+# # Eliminar un usuario en un hilo
+# def eliminar_usuario_hilo(id):
+#     thread = threading.Thread(target=eliminar_usuario, args=(id,))
+#     thread.start()
 
 
 
 
 
-# Devuelve todos los usuarios en la base de datos
-@app.route('/usuarios', methods = ['GET'])
-def get_users():
 
-    usuarios_result = []
 
-    def obtener_usuarios():
-        cursor.execute('SELECT * FROM usuarios')
-        usuarios = cursor.fetchall()
-        usuarios_result.append(usuarios)   
+# # Devuelve todos los usuarios en la base de datos
+# @app.route('/usuarios', methods = ['GET'])
+# def get_users():
+
+#     usuarios_result = []
+
+#     def obtener_usuarios():
+#         cursor.execute('SELECT * FROM usuarios')
+#         usuarios = cursor.fetchall()
+#         usuarios_result.append(usuarios)   
     
-    hilo = threading.Thread(target=obtener_usuarios)
-    hilo.start()
-    hilo.join()
+#     hilo = threading.Thread(target=obtener_usuarios)
+#     hilo.start()
+#     hilo.join()
   
-    usuarios = usuarios_result[0] 
-    return jsonify(usuarios)
+#     usuarios = usuarios_result[0] 
+#     return jsonify(usuarios)
 
 
 
@@ -207,50 +213,9 @@ def get_users():
 if __name__ == '__main__':
     app.run(debug=True)
 
-#*****************************************************************************
-# # Ejemplo de uso
-#*****************************************************************************
 
-# Ejemplo de uso
-# crear_usuario_hilo('John Doe', 'john@example.com')
-# obtener_usuarios_hilo()
-# obtener_usuario_por_id_hilo(1)
-# actualizar_usuario_hilo(1, 'John Smith', 'john.smith@example.com')
-# eliminar_usuario_hilo(1)
 
 
 # Cerrar la conexión a la base de datos
-conn.close()
+#conn.close()
 
-
-# Crear tablas en la base de datos cajeros.db
-#cur.execute("CREATE TABLE usuarios(name, email, pin)")
-#cur.execute("CREATE TABLE cajeros( codigo, stado, disponible)")
-
-# cur.execute("""
-#     INSERT INTO usuarios VALUES
-#         ('Yari', 'yari@cuc.cr', 1234),
-#         ('Aldo', 'aldo@cuc.cr', 1234)
-# """)
-
-# cur.execute("""
-#     INSERT INTO cajeros VALUES
-#         ('01', 'ocupado', 10000000),
-#         ('02', 'disponible', 7500000)
-# """)
-            
-# con.commit()
-            
-#res = cur.execute("SELECT * FROM cajeros")
-# res.fetchall()
-
-# for row in cur.execute("SELECT * FROM cajeros"):
-#     print(row)
-
-# #print(res)
-# con.close()
-
-
-
-
-#con.commit()
