@@ -163,82 +163,24 @@ def update_user(id):
 #*****************************************************************************
 # delete usuario
 #*****************************************************************************
-
-# Función para leer un usuario por ID
-# def obtener_usuario_por_id(id):
-#     cursor.execute('SELECT * FROM usuarios WHERE id = ?', (id,))
-#     usuario = cursor.fetchone()
-#     return usuario
-
-
-
-# Función para actualizar un usuario
-# def actualizar_usuario(id, nombre, email):
-#     cursor.execute('''
-#         UPDATE usuarios
-#         SET nombre = ?, email = ?
-#         WHERE id = ?
-#     ''', (nombre, email, id))
-#     conn.commit()
-
-# Función para eliminar un usuario
-# def eliminar_usuario(id):
-#     cursor.execute('DELETE FROM usuarios WHERE id = ?', (id,))
-#     conn.commit()
-
-
-
-
-
-#*****************************************************************************
-# Implementando metodos en hilos
-#*****************************************************************************
-
-
-
-# # Obtener un usuario por ID en un hilo
-# def obtener_usuario_por_id_hilo(id):
-#     thread = threading.Thread(target=obtener_usuario_por_id, args=(id,))
-#     thread.start()
-
-# # Actualizar un usuario en un hilo
-# def actualizar_usuario_hilo(id, nombre, email):
-#     thread = threading.Thread(target=actualizar_usuario, args=(id, nombre, email))
-#     thread.start()
-
-# # Eliminar un usuario en un hilo
-# def eliminar_usuario_hilo(id):
-#     thread = threading.Thread(target=eliminar_usuario, args=(id,))
-#     thread.start()
-
-
-
-
-
-
-
-# # Devuelve todos los usuarios en la base de datos
-# @app.route('/usuarios', methods = ['GET'])
-# def get_users():
-
-#     usuarios_result = []
-
-#     def obtener_usuarios():
-#         cursor.execute('SELECT * FROM usuarios')
-#         usuarios = cursor.fetchall()
-#         usuarios_result.append(usuarios)   
+@app.route('/usuario/<int:id>', methods=['DELETE'])
+def delete_user(id):
+    def delete_user_db():
+        # Adquirir el bloqueo de memoria
+        lock.acquire()
+        
+        try:
+            cursor.execute('DELETE FROM usuarios WHERE id = ?', (id,))
+            conn.commit()
+        finally:
+            # Liberar el bloqueo de memoria
+            lock.release()
     
-#     hilo = threading.Thread(target=obtener_usuarios)
-#     hilo.start()
-#     hilo.join()
-  
-#     usuarios = usuarios_result[0] 
-#     return jsonify(usuarios)
-
-
-
-
+    hilo = threading.Thread(target=delete_user_db, name='delete user - hilo')
+    hilo.start()
+    hilo.join()
     
+    return jsonify({'msg': 'Usuario eliminado exitosamente'}), 200
 
 
 
