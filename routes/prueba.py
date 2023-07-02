@@ -2,4 +2,5 @@ from flask import jsonify, request
 
 #Prueba
 def hello_world():
-    return "<p>Hello, World desde archivo independiente"
+    texto = request.json['texto']
+    return jsonify({'texto': texto})
