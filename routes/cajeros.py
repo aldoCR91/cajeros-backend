@@ -70,7 +70,7 @@ def get_cajeros():
 
     result = q.get_nowait()
 
-    return jsonify({'usuarios': result}), 200
+    return jsonify({'cajeros': result}), 200
 
 
 #*****************************************************************************

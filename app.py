@@ -94,7 +94,7 @@ app.route('/usuario/<int:id>', methods=['DELETE'])(delete_user) # delete usuario
 #*****************************************************************************
 # Creando API rutas de cajeros
 #*****************************************************************************
-app.route('/cajeros', methods = ['POST'])(create_cajero) # Create nuevo cajero
+app.route('/cajero', methods = ['POST'])(create_cajero) # Create nuevo cajero
 app.route('/cajeros', methods = ["GET"])(get_cajeros) # Read cajeros
 app.route("/cajero/<int:id>", methods = ["GET"])(get_cajero) # Show cajero
 app.route('/cajero/<int:id>', methods=['PUT'])(update_cajero) # Update cajero
@@ -103,7 +103,7 @@ app.route('/cajero/<int:id>', methods=['DELETE'])(delete_cajero) # delete cajero
 #*****************************************************************************
 # Creando API rutas de depositos
 #*****************************************************************************
-app.route('/depositos', methods = ['POST'])(create_deposito) # Create nuevo deposito
+app.route('/deposito', methods = ['POST'])(create_deposito) # Create nuevo deposito
 app.route('/depositos', methods = ["GET"])(get_depositos) # Read depositos
 
 #*****************************************************************************
