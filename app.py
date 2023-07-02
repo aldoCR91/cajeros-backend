@@ -81,7 +81,7 @@ conn.commit()
 
 
 #Ruta de prueba
-app.route('/prueba', methods = ['POST'])(hello_world)
+app.route('/', methods = ['GET'])(hello_world)
 #*****************************************************************************
 # Creando API rutas de usuarios
 #*****************************************************************************
