@@ -28,11 +28,25 @@ def create_deposito():
         lock.acquire()
 
         try:
+            #get saldo actual del usuario
+            cursor.execute('''SELECT saldo FROM usuarios WHERE id ''',(user_id))
+            saldo = cursor.fetchone()
+            
+            #sumar al saldo actual el monto del deposito
+            nuevo_saldo = amount + saldo
+            
+            #guardar saldo despues del deposito en base de datos
+            curso.execute('''UPDATE usuarios SET saldo = ? WHERE id = ?
+            ''', (nuevo_saldo,user_id))
+            conn.commit()
+
+            #insertar nuevo registro en la tabla de depositos
             cursor.execute('''
                 INSERT INTO depositos (user_id, amount, date)
                 VALUES (?, ?, ?)
                 ''', (user_id, amount, date))
             conn.commit()
+            
         finally:
             # Liberar el bloqueo de memoria
             lock.release()
