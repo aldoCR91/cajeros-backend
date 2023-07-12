@@ -28,6 +28,23 @@ def create_retiro():
         lock.acquire()
 
         try:
+            #get saldo actual de la cuenta
+            cursor.execute('SELECT saldo FROM usuarios WHERE id = ?', (user_id,))
+            saldo = cursor.fetchone()
+            
+            #validar cantidad solicitada
+            if saldo < amount:
+                return jsonify({'msg':'Saldo insuficiente'}),401
+
+            #rebajar monto solicitado del saldo
+            nuevo_saldo = saldo - amount
+
+            #actualizar saldo en base de datos
+            cursor.execute('''
+                UPDATE usuarios SET saldo = ? WHERE id = ?
+            ''', (saldo,user_id))
+            conn.commit()
+
             cursor.execute('''
                 INSERT INTO retiros (user_id, amount, date)
                 VALUES (?, ?, ?)
