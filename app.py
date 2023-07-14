@@ -6,7 +6,7 @@ import threading
 import datetime
 
 from routes.prueba import hello_world
-from routes.user import create_user, get_users, get_user, update_user, delete_user
+from routes.user import create_user, get_users, get_user, update_user, delete_user,update_state
 from routes.cajeros import create_cajero, get_cajeros, get_cajero, update_cajero, delete_cajero
 from routes.depositos import create_deposito, get_depositos
 from routes.retiros import create_retiro, get_retiros
@@ -35,8 +35,8 @@ cursor.execute(
     """CREATE TABLE IF NOT EXISTS 
        usuarios(id INTEGER PRIMARY KEY AUTOINCREMENT,
        name VARCHAR(80),
-       email VARCHAR(80),
-       image, rol, pin, saldo )""") # Creando tabla de usuarios en la base de datos
+       email VARCHAR(80) UNIQUE,
+       image, rol, pin, saldo, state )""") # Creando tabla de usuarios en la base de datos
 conn.commit()
 
 cursor.execute(
@@ -89,7 +89,8 @@ app.route('/usuarios', methods = ['POST'])(create_user) # Create nuevo usuario
 app.route('/usuarios', methods = ["GET"])(get_users) # Read usuarios
 app.route("/usuario/<int:id>", methods = ["GET"])(get_user) # Show usuario
 app.route('/usuario/<int:id>', methods=['PUT'])(update_user) # Update usuario
-app.route('/usuario/<int:id>', methods=['DELETE'])(delete_user) # delete usuario        
+app.route('/usuario/<int:id>', methods=['DELETE'])(delete_user) # delete usuario  
+app.route('/usuario/state/<int:id>', methods=['PUT'])(update_state) # delete usuario        
 
 #*****************************************************************************
 # Creando API rutas de cajeros

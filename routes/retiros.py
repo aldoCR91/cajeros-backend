@@ -22,29 +22,52 @@ def create_retiro():
     user_id = request.json['user_id']
     amount = request.json['amount']
     date = datetime.datetime.now()
+    cajero_id = request.json['cajero_id']
 
     def insert_retiro():
         # Bloquear de memoria
         lock.acquire()
 
         try:
+            #validar usuario
+            cursor.execute('SELECT * FROM usuarios WHERE id = ?',(user_id))
+            usuario = cursor.fetchone()
+            return usuario
+            #validar cajero
             #get saldo actual de la cuenta
             cursor.execute('SELECT saldo FROM usuarios WHERE id = ?', (user_id,))
-            saldo = cursor.fetchone()
+            saldo_cuenta = cursor.fetchone()
             
             #validar cantidad solicitada
-            if saldo < amount:
+            if saldo_cuenta < amount:
                 return jsonify({'msg':'Saldo insuficiente'}),401
+            
+            #get disponible en el cajero
+            cursor.execute('SELECT amount FROM cajeros WHERE id = ?', (cajero_id,))
+            saldo_cajero = cursor.fetchone()
+
+            #validar efectivo del cajero
+            if saldo_cajero < amount:
+                return jsonify({"status":"error","msg":"Efectivo no disponible en este cajero"})
 
             #rebajar monto solicitado del saldo
-            nuevo_saldo = saldo - amount
+            nuevo_saldo_cajero = saldo_cajero - amount
+
+            #rebajar monto solicitado del saldo
+            nuevo_saldo = saldo_cuenta - amount
+
+            #rebajar disponible en el cajero
+            cursor.execute('''
+                           UPDATE cajeros SET amount ? WHERE id = ?
+                           ''',(nuevo_saldo_cajero,cajero_id))
 
             #actualizar saldo en base de datos
             cursor.execute('''
                 UPDATE usuarios SET saldo = ? WHERE id = ?
-            ''', (saldo,user_id))
+            ''', (nuevo_saldo,user_id))
             conn.commit()
 
+            #crear registro del retiro en la base de datos
             cursor.execute('''
                 INSERT INTO retiros (user_id, amount, date)
                 VALUES (?, ?, ?)

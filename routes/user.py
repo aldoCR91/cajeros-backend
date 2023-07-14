@@ -24,6 +24,20 @@ def create_user():
     rol = request.json['rol']
     pin = request.json['pin']
     saldo = request.json['saldo']
+    state = request.json['state']
+
+    try:
+        cursor.execute('SELECT * FROM usuarios WHERE email = ?', (email,))
+        user = cursor.fetchone()
+
+        if user is not None:
+            cursor.execute('''
+                UPDATE usuarios SET state = ? WHERE email = ?
+            ''', (state,email))
+            conn.commit()
+    except:
+        return jsonify({"msg":"Error actualizando state de usuario"})  
+   
 
     def insert_user():
         # Bloquear de memoria
@@ -31,9 +45,9 @@ def create_user():
 
         try:
             cursor.execute('''
-                INSERT INTO usuarios (name, email, image, rol, pin, saldo)
-                VALUES (?, ?, ?, ?, ?, ?)
-                ''', (name, email, image, rol, pin, saldo))
+                INSERT INTO usuarios (name, email, image, rol, pin, saldo, state)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (name, email, image, rol, pin, saldo, state))
             conn.commit()
         finally:
             # Liberar el bloqueo de memoria
@@ -154,3 +168,29 @@ def delete_user(id):
     hilo.join()
     
     return jsonify({'msg': 'Usuario eliminado exitosamente'}), 200
+
+#*****************************************************************************
+# Update usuario
+#*****************************************************************************
+def update_state(id):
+
+    state = request.json['state']
+    
+    def update_user_db():
+        # Adquirir el bloqueo de memoria
+        lock.acquire()
+
+        try:
+            cursor.execute('''
+                UPDATE usuarios SET state = ? WHERE id = ?
+            ''', (state,id))
+            conn.commit()
+        finally:
+            # Liberar el bloqueo de memoria
+            lock.release()
+
+    hilo = threading.Thread(target=update_user_db, name="Update user - hilo")
+    hilo.start()
+    hilo.join()
+
+    return jsonify({'msg': 'Estado del Usuario actualizado correctamente' }), 201

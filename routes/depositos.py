@@ -36,7 +36,7 @@ def create_deposito():
             nuevo_saldo = amount + saldo
             
             #guardar saldo despues del deposito en base de datos
-            curso.execute('''UPDATE usuarios SET saldo = ? WHERE id = ?
+            cursor.execute('''UPDATE usuarios SET saldo = ? WHERE id = ?
             ''', (nuevo_saldo,user_id))
             conn.commit()
 
