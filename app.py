@@ -35,7 +35,7 @@ cursor.execute(
     """CREATE TABLE IF NOT EXISTS 
        usuarios(id INTEGER PRIMARY KEY AUTOINCREMENT,
        name VARCHAR(80),
-       email VARCHAR(80),
+       email VARCHAR(80) UNIQUE,
        image, rol, pin, saldo )""") # Creando tabla de usuarios en la base de datos
 conn.commit()
 
