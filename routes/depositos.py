@@ -43,33 +43,31 @@ def create_deposito():
                 user_exist = TRUE
                 
                 
-        finally
+        finally:
             # Liberar el bloqueo de memoria
             lock.release()
         
         return user_exist
 
-    #validar amount
-    def validate_amount():
-        value = TRUE
-        if type(amount) != type(1) and type(amount) != type(1.1):
-            value = FALSE
-        return value
-
-    
-    def insert_deposito():
+    #insertar registro en la tabla de depositos
+    def insert_deposito(q: queue.Queue):
+        
         # Bloquear de memoria
         lock.acquire()
 
         try:
-            cursor.execute('''
-                INSERT INTO depositos (user_id, amount, date)
-                VALUES (?, ?, ?)
-                ''', (user_id, amount, date))
-            conn.commit()
+            if validate_amount and validate_user():
+                cursor.execute('''
+                    INSERT INTO depositos (user_id, amount, date)
+                    VALUES (?, ?, ?)
+                    ''', (user_id, amount, date))
+                conn.commit()
+            
         finally:
             # Liberar el bloqueo de memoria
             lock.release()
+
+        q.put_nowait(depositos)
 
     hilo = threading.Thread(target=insert_deposito, name="Insertar deposito - hilo")
     hilo.start()
@@ -186,3 +184,10 @@ def get_depositos():
 #     hilo.join()
     
 #     return jsonify({'msg': 'deposito eliminado exitosamente'}), 200
+
+#validar amount
+def validate_amount():
+    value = TRUE
+    if type(amount) != type(1) or type(amount) != type(1.1) or amount < 0:
+        value = FALSE
+    return value
