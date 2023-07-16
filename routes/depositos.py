@@ -23,6 +23,40 @@ def create_deposito():
     amount = request.json['amount']
     date = datetime.datetime.now()
 
+    #validar usuario
+    def validate_user():
+        # Bloquear memoria
+        lock.acquire()
+
+        #variable de retorno
+        user_exist = FALSE
+        
+        try:
+            #getting user
+            cursor.execute('''
+                SELECT * FROM usuarios WHERE id = ?
+                ''',(user_id,)
+            user = cursor.fetchone()
+            
+            #si el usuario es distinto de none
+            if user is not NONE:
+                user_exist = TRUE
+                
+                
+        finally
+            # Liberar el bloqueo de memoria
+            lock.release()
+        
+        return user_exist
+
+    #validar amount
+    def validate_amount():
+        value = TRUE
+        if type(amount) != type(1) and type(amount) != type(1.1):
+            value = FALSE
+        return value
+
+    
     def insert_deposito():
         # Bloquear de memoria
         lock.acquire()
