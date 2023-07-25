@@ -106,6 +106,21 @@ def get_user(id):
 
     return jsonify({'usuario': result }), 200
 
+#*****************************************************************************
+# user exist
+#*****************************************************************************
+def user_exist(email):
+    try:
+        cursor.execute('SELECT * FROM usuarios WHERE email = ?', (email,))
+        usuario = cursor.fetchone()
+    except:
+        return False
+
+    if usuario == None:
+        return False
+    if len(usuario) > 0:
+        return True
+        
 
 #*****************************************************************************
 # Update usuario
