@@ -29,15 +29,20 @@ def create_user():
         # Bloquear de memoria
         lock.acquire()
 
-        try:
-            cursor.execute('''
-                INSERT INTO usuarios (name, email, image, rol, pin, saldo)
-                VALUES (?, ?, ?, ?, ?, ?)
-                ''', (name, email, image, rol, pin, saldo))
-            conn.commit()
-        finally:
-            # Liberar el bloqueo de memoria
-            lock.release()
+        exist = user_exist(email)
+
+        if(!exist):
+            try:
+                cursor.execute('''
+                    INSERT INTO usuarios (name, email, image, rol, pin, saldo)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ''', (name, email, image, rol, pin, saldo))
+                conn.commit()
+            finally:
+                # Liberar el bloqueo de memoria
+                lock.release()
+        
+            
 
     hilo = threading.Thread(target=insert_user, name="Insertar usuario - hilo")
     hilo.start()
