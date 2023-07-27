@@ -38,7 +38,7 @@ cursor.execute(
        usuarios(id INTEGER PRIMARY KEY AUTOINCREMENT,
        name VARCHAR(80),
        email VARCHAR(80) UNIQUE,
-       image, rol, pin, saldo )""") # Creando tabla de usuarios en la base de datos
+       image, rol, pin, saldo, state )""") # Creando tabla de usuarios en la base de datos
 conn.commit()
 
 cursor.execute(
@@ -97,8 +97,8 @@ app.route('/usuario/<int:id>', methods=['DELETE'])(delete_user) # delete usuario
 #*****************************************************************************
 # Creando API rutas de cajeros
 #*****************************************************************************
-app.route('/cajero', methods = ['POST'])(create_cajero) # Create nuevo cajero
 app.route('/cajeros', methods = ["GET"])(get_cajeros) # Read cajeros
+app.route('/cajero', methods = ['POST'])(create_cajero) # Create nuevo cajero
 app.route("/cajero/<int:id>", methods = ["GET"])(get_cajero) # Show cajero
 app.route('/cajero/<int:id>', methods=['PUT'])(update_cajero) # Update cajero
 app.route('/cajero/<int:id>', methods=['DELETE'])(delete_cajero) # delete cajero

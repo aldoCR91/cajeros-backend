@@ -27,31 +27,42 @@ def create_user():
     rol = request.json['rol']
     pin = request.json['pin']
     saldo = request.json['saldo']
+    state = request.json['state']
 
     # Revisar si ya existe un usuario en ese email
-    user = get_user()
-    print(user[0])
+    user = user_exist(email=email)
 
     def insert_user():
         # Bloquear de memoria
         lock.acquire()
-
         try:
             cursor.execute('''
-                INSERT INTO usuarios (name, email, image, rol, pin, saldo)
-                VALUES (?, ?, ?, ?, ?, ?)
-                ''', (name, email, image, rol, pin, saldo))
+                INSERT INTO usuarios (name, email, image, rol, pin, saldo, state)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (name, email, image, rol, pin, saldo, state))
             conn.commit()
         finally:
             # Liberar el bloqueo de memoria
             lock.release()
-
-    hilo = threading.Thread(target=insert_user, name="Insertar usuario - hilo")
-    hilo.start()
-    hilo.join()
+    
+    if(user):
+        return jsonify({'ok': False,
+                        'msg': 'Ya existe un usuario con este email'
+                        }), 401
+    else:
+        hilo = threading.Thread(target=insert_user, name="Insertar usuario - hilo")
+        hilo.start()
+        hilo.join()
+        return jsonify({
+            'mensaje': 'Usuario creado correctamente',
+            'ok': True}), 201
 
     
-    return jsonify({'mensaje': 'Usuario creado correctamente'}), 201
+
+    
+
+    
+    
 
 #*****************************************************************************
 # Read usuarios
@@ -165,3 +176,16 @@ def delete_user(id):
     hilo.join()
     
     return jsonify({'msg': 'Usuario eliminado exitosamente'}), 200
+
+
+def user_exist(email):
+
+    lock.acquire()
+
+    try:
+        cursor.execute('''SELECT * FROM usuarios WHERE email = ? ''',(email,))
+        usuario = cursor.fetchone()
+    finally:
+        lock.release()
+    
+    return usuario

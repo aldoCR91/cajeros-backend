@@ -18,34 +18,7 @@ lock = threading.Lock()
 # Create nuevo usuario
 #*****************************************************************************
 def create_cajero():
-
     #validar usuario
-    def validar_usuario():
-        user_email = request.json['user_email']
-        print(user_email)
-
-        lock.acquire()
-
-        try:
-            cursor.execute('''SELECT * FROM usuarios WHERE email = ?''',(user_email,))
-            user = cursor.fetchone()
-
-            print(user[4])
-
-            #validar que el usuario exista
-            if user is None:
-                return {"status":"error",
-                        "msg":"usuario no encontrado"}
-
-
-            #validar que el usuario sea admin
-            if user[4] != "admin":
-                return {"status":"error",
-                        "msg":"usuario no autorizado"}
-        finally:
-            lock.release()
-    
-    print(validar_usuario())
 
     def insert_cajero():
         # Bloquear de memoria
