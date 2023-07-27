@@ -3,6 +3,9 @@ import sqlite3
 import threading
 import queue
 
+### Esta es una prueba de git 
+### para trabajar en equipo
+
 #*****************************************************************************
 # Conexión a la base de datos
 #*****************************************************************************
@@ -24,6 +27,10 @@ def create_user():
     rol = request.json['rol']
     pin = request.json['pin']
     saldo = request.json['saldo']
+
+    # Revisar si ya existe un usuario en ese email
+    user = get_user()
+    print(user[0])
 
     def insert_user():
         # Bloquear de memoria
@@ -106,11 +113,7 @@ def get_user():
 
     result = q.get_nowait()
 
-    data = {}
-    if result == None:
-        return jsonify({"exist":"false"}), 404
-    else:
-        return jsonify({"exist":"true"}), 200
+    return jsonify(result), 200
 
     
 
