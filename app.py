@@ -1,6 +1,7 @@
 
 
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import sqlite3
 import threading
 import datetime
@@ -16,6 +17,7 @@ from routes.transferencias import create_transferencia, get_transferencias
 # Instanciando servidor de flask
 #*****************************************************************************
 app = Flask(__name__)
+CORS(app)
 
 #*****************************************************************************
 # Conexión a la base de datos
@@ -87,7 +89,8 @@ app.route('/prueba', methods = ['POST'])(hello_world)
 #*****************************************************************************
 app.route('/usuarios', methods = ['POST'])(create_user) # Create nuevo usuario
 app.route('/usuarios', methods = ["GET"])(get_users) # Read usuarios
-app.route("/usuario/<int:id>", methods = ["GET"])(get_user) # Show usuario
+app.route("/usuario/<email>", methods = ["GET"])(get_user) # Show usuario
+app.route("/usuario/show", methods = ["POST"])(get_user) # Show usuario 2.0
 app.route('/usuario/<int:id>', methods=['PUT'])(update_user) # Update usuario
 app.route('/usuario/<int:id>', methods=['DELETE'])(delete_user) # delete usuario        
 

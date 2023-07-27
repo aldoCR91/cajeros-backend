@@ -81,13 +81,15 @@ def get_users():
 #*****************************************************************************
 # Show usuario
 #*****************************************************************************
-def get_user(id):
+def get_user():
+
+    email = request.json['email']
 
     def get_user_db(q: queue.Queue):
         # Adquirir el bloqueo de memoria
         lock.acquire()
         try:
-            cursor.execute('SELECT * FROM usuarios WHERE id = ?', (id,))
+            cursor.execute('SELECT * FROM usuarios WHERE email = ?', (email,))
             usuario = cursor.fetchone()
         finally:
             # Liberar el bloqueo de memoria
@@ -104,7 +106,13 @@ def get_user(id):
 
     result = q.get_nowait()
 
-    return jsonify({'usuario': result }), 200
+    data = {}
+    if result == None:
+        return jsonify({"exist":"false"}), 404
+    else:
+        return jsonify({"exist":"true"}), 200
+
+    
 
 
 #*****************************************************************************
