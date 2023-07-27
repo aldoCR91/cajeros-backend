@@ -19,6 +19,10 @@ from routes.transferencias import create_transferencia, get_transferencias
 app = Flask(__name__)
 CORS(app)
 
+
+
+# HOLA ESTO ES UN COMENTARIO 
+
 #*****************************************************************************
 # Conexión a la base de datos
 #*****************************************************************************
