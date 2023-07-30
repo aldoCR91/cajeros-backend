@@ -27,10 +27,11 @@ def create_user():
     rol = request.json['rol']
     pin = request.json['pin']
     saldo = request.json['saldo']
-    state = request.json['state']
+    
 
     # Revisar si ya existe un usuario en ese email
     user = user_exist(email=email)
+    print(user)
 
     def insert_user():
         # Bloquear de memoria
@@ -38,8 +39,8 @@ def create_user():
         try:
             cursor.execute('''
                 INSERT INTO usuarios (name, email, image, rol, pin, saldo, state)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                ''', (name, email, image, rol, pin, saldo, state))
+                VALUES (?, ?, ?, ?, ?, ?, "activo")
+                ''', (name, email, image, rol, pin, saldo,))
             conn.commit()
         finally:
             # Liberar el bloqueo de memoria
@@ -55,7 +56,8 @@ def create_user():
         hilo.join()
         return jsonify({
             'mensaje': 'Usuario creado correctamente',
-            'ok': True}), 201
+            'ok': True,
+            'email': email}), 201
 
     
 
