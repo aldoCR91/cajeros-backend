@@ -42,6 +42,11 @@ def create_user():
                 VALUES (?, ?, ?, ?, ?, ?, "activo")
                 ''', (name, email, image, rol, pin, saldo,))
             conn.commit()
+        except:
+            return jsonify({
+                'ok': False,
+                'msg': 'Error al insertar usuario'
+                }), 400
         finally:
             # Liberar el bloqueo de memoria
             lock.release()
