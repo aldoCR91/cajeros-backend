@@ -119,6 +119,7 @@ app.route('/depositos', methods = ["GET"])(get_depositos) # Read depositos
 app.route('/retiro', methods = ['POST'])(create_retiro) # Create nuevo retiro
 app.route('/retiros', methods = ["GET"])(get_retiros) # Read retiros
 
+
 #*****************************************************************************
 # Creando API rutas de transferencias
 #*****************************************************************************
