@@ -125,6 +125,7 @@ app.route('/retiros', methods = ["POST"])(Update_Amount) # Update saldo(cajero y
 # Creando API rutas de transferencias
 #*****************************************************************************
 app.route('/transferencias', methods = ['POST'])(create_transferencia) # Create nuevo transferencia
+
 app.route('/transferencias', methods = ["GET"])(get_transferencias) # Read transferencias
 
 
