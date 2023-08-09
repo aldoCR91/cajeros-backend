@@ -9,8 +9,8 @@ import datetime
 from routes.prueba import hello_world
 from routes.user import create_user, get_users, get_user, update_user, delete_user
 from routes.cajeros import create_cajero, get_cajeros, get_cajero, update_cajero, delete_cajero
-from routes.depositos import create_deposito, get_depositos
-from routes.retiros import create_retiro, get_retiros
+from routes.depositos import create_deposito, get_depositos , add_deposito
+from routes.retiros import create_retiro, get_retiros , Update_Amount
 from routes.transferencias import create_transferencia, get_transferencias
 
 #*****************************************************************************
@@ -110,15 +110,16 @@ app.route('/cajero/<int:id>', methods=['DELETE'])(delete_cajero) # delete cajero
 #*****************************************************************************
 # Creando API rutas de depositos
 #*****************************************************************************
-app.route('/deposito', methods = ['POST'])(create_deposito) # Create nuevo deposito
+app.route('/deposito', methods = ['POST'])(add_deposito) # Agrega Deposito a Tabla depositos
 app.route('/depositos', methods = ["GET"])(get_depositos) # Read depositos
+app.route('/depositos', methods = ["POST"])(create_deposito) # Create deposito
 
 #*****************************************************************************
 # Creando API rutas de retiros
 #*****************************************************************************
 app.route('/retiro', methods = ['POST'])(create_retiro) # Create nuevo retiro
 app.route('/retiros', methods = ["GET"])(get_retiros) # Read retiros
-
+app.route('/retiros', methods = ["POST"])(Update_Amount) # Update saldo(cajero y usuario)retiros
 
 #*****************************************************************************
 # Creando API rutas de transferencias

@@ -44,27 +44,59 @@ def create_retiro():
     
     return jsonify({'msg': 'retiro creado correctamente'}), 201
 
+
+
 #*****************************************************************************
-# Update Amount 
+# Update Saldos por Retiro (CAJERO Y USUARIO) 
 #*****************************************************************************
 def Update_Amount():
     user_id = request.json['user_id']
     amount = request.json['amount']
+    cajero_id = request.json['cajero_id']
+                            # PONER EL NOMBRE DEL CAJERO
+                            ##############################################
+
 
     try:
         conn = sqlite3.connect('database.db', check_same_thread=False)
         cursor = conn.cursor()
         
-        cursor.execute('''SELECT Saldo FROM Usuarios 
+        cursor.execute('''SELECT amount FROM cajeros 
+                          WHERE id = (?)''', (cajero_id,))
+        
+        saldo_cajero = cursor.fetchone()
+
+        if saldo_cajero:
+
+            saldo_cajero = saldo_cajero[0]
+            saldo_cajero_updated = int(saldo_cajero) - int(amount)
+
+            
+            cursor.execute('''UPDATE cajeros
+                                SET amount = (?)
+                                WHERE id = (?)''',
+                            (saldo_cajero_updated, cajero_id))
+
+            # Confirmar los cambios
+            conn.commit()
+            print("Actualizacion exitosa. Saldo cajero actualizado:", saldo_cajero_updated)
+        else:
+            print("Saldo de cajero no encontrado.")
+
+
+    # UPDATE DEL SALDO DEL USUARIO
+
+        cursor.execute('''SELECT saldo FROM usuarios 
                           WHERE id = (?)''', (user_id,))
+        
         saldo_actual = cursor.fetchone()
         
         if saldo_actual:
             saldo_actual = saldo_actual[0]
             saldo_actualizado = int(saldo_actual) - int(amount)
 
-            cursor.execute('''UPDATE Usuarios
-                              SET Saldo = (?)
+            cursor.execute('''UPDATE usuarios
+                              SET saldo = (?)
                               WHERE id = (?)''',
                            (saldo_actualizado, user_id))
 
@@ -84,6 +116,8 @@ def Update_Amount():
 
     
     return jsonify({'msg': 'retiro creado correctamente'}), 201
+
+
 #*****************************************************************************
 # Read retiros
 #*****************************************************************************

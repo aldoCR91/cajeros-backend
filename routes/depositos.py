@@ -16,9 +16,9 @@ cursor = conn.cursor()
 lock = threading.Lock()
 
 #*****************************************************************************
-# Create nuevo deposito
+# Agregar deposito a la tabla depositos
 #*****************************************************************************
-def create_deposito():
+def add_deposito():
     user_id = request.json['user_id']
     amount = request.json['amount']
     date = datetime.datetime.now()
@@ -43,6 +43,100 @@ def create_deposito():
 
     
     return jsonify({'msg': 'deposito creado correctamente'}), 201
+
+
+
+#*****************************************************************************
+# Realizar Deposito
+#*****************************************************************************
+def create_deposito():
+    user_id = request.json['user_id']
+    amount = request.json['amount']
+    date = datetime.datetime.now()
+    cajero_id = request.json['cajero_id']
+
+    def Update_Saldo():
+        # user_id = request.json['user_id']
+        # amount = request.json['amount']
+        conn = sqlite3.connect('database.db', check_same_thread=False)
+        cursor = conn.cursor()
+
+        try:
+        # INGRESO DEL DINERO EN EL CAJERO
+            cursor.execute('''SELECT amount FROM cajeros 
+                            WHERE id = (?)''', (cajero_id,))
+            
+            saldo_cajero = cursor.fetchone()
+            
+            if saldo_cajero:
+                saldo_cajero = saldo_cajero[0]
+
+                saldo_cajero_updated = int(saldo_cajero) + int(amount)
+
+
+                cursor.execute('''UPDATE cajeros
+                                SET amount = (?)
+                                WHERE id = (?)''',
+                            (saldo_cajero_updated, cajero_id))
+
+                # Confirmar los cambios
+                conn.commit()
+                print("Saldo cajero actualizado:", saldo_cajero_updated)
+            else:
+                print("Saldo del cajero no encontrado.")
+
+
+
+        # UPDATE DEL SALDO DEL USUARIO
+            cursor.execute('''SELECT saldo FROM usuarios 
+                            WHERE id = (?)''', (user_id,))
+            
+            saldo_actual = cursor.fetchone()
+        
+            if saldo_actual:
+                saldo_actual = saldo_actual[0]
+                saldo_actualizado = int(saldo_actual) + int(amount)
+
+                cursor.execute('''UPDATE usuarios
+                                SET saldo = (?)
+                                WHERE id = (?)''',
+                            (saldo_actualizado, user_id))
+
+                # Confirmar los cambios
+                conn.commit()
+                print("Deposito exitoso. Saldo actualizado:", saldo_actualizado)
+            else:
+                print("Usuario no encontrado.")
+        except Exception as e:
+            # En caso de error, deshacer los cambios
+            conn.rollback()
+            print("Error:", str(e))
+        # finally:
+        #     # Cerrar el cursor y la conexión a la base de datos
+        #     cursor.close()
+        #     conn.close()
+    # def insert_deposito():
+    #     # Bloquear de memoria
+    #     lock.acquire()
+
+    #     try:
+    #         cursor.execute('''
+    #             INSERT INTO depositos (user_id, amount, date)
+    #             VALUES (?, ?, ?)
+    #             ''', (user_id, amount, date))
+    #         conn.commit()
+    #     finally:
+    #         # Liberar el bloqueo de memoria
+    #         lock.release()
+
+    hilo = threading.Thread(target=Update_Saldo, name="Crear deposito - hilo")
+    hilo.start()
+    hilo.join()
+
+    
+    return jsonify({'msg': 'deposito realizado correctamente'}), 201
+
+
 
 #*****************************************************************************
 # Read depositos
