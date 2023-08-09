@@ -111,10 +111,10 @@ def create_deposito():
             # En caso de error, deshacer los cambios
             conn.rollback()
             print("Error:", str(e))
-        # finally:
-        #     # Cerrar el cursor y la conexión a la base de datos
-        #     cursor.close()
-        #     conn.close()
+        finally:
+            # Cerrar el cursor y la conexión a la base de datos
+            cursor.close()
+            conn.close()
     # def insert_deposito():
     #     # Bloquear de memoria
     #     lock.acquire()
