@@ -29,9 +29,10 @@ def create_user():
         # Bloquear de memoria
         lock.acquire()
 
-        exist = user_exist(email)
+        # exist = user_exist(email)
+        exist = True
 
-        if(!exist):
+        if(exist):
             try:
                 cursor.execute('''
                     INSERT INTO usuarios (name, email, image, rol, pin, saldo)
@@ -182,3 +183,24 @@ def delete_user(id):
     hilo.join()
     
     return jsonify({'msg': 'Usuario eliminado exitosamente'}), 200
+
+
+def Get_Saldo_User(id):
+    user_id = request.json['user_id']
+    saldoUsuario = 0
+    def Get_Saldo_UserDB():
+        # Adquirir el bloqueo de memoria
+        try:
+            cursor.execute('SELECT Saldo FROM usuarios WHERE id = ?', (user_id))
+            saldoUsuario = cursor.fetchone()
+
+            conn.commit()
+        finally:
+            # Liberar el bloqueo de memoria
+            print("")
+            
+    hilo = threading.Thread(target=Get_Saldo_UserDB, name='get saldo user - hilo')
+    hilo.start()
+    hilo.join()
+    
+    return jsonify(saldoUsuario), 200
