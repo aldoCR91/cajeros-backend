@@ -29,28 +29,26 @@ def create_user():
         # Bloquear de memoria
         lock.acquire()
 
-        # exist = user_exist(email)
-        exist = True
+        not_exist = user_not_exist(email)
 
-        if(exist):
-            try:
+        try:
+            if not_exist:
                 cursor.execute('''
                     INSERT INTO usuarios (name, email, image, rol, pin, saldo)
                     VALUES (?, ?, ?, ?, ?, ?)
                     ''', (name, email, image, rol, pin, saldo))
                 conn.commit()
-            finally:
+        finally:
                 # Liberar el bloqueo de memoria
                 lock.release()
-        
-            
+    
 
     hilo = threading.Thread(target=insert_user, name="Insertar usuario - hilo")
     hilo.start()
     hilo.join()
 
     
-    return jsonify({'mensaje': 'Usuario creado correctamente'}), 201
+    return jsonify({'mensaje': 'Usuario creado correctamente', }), 201
 
 #*****************************************************************************
 # Read usuarios
@@ -65,7 +63,6 @@ def get_users():
         try:
             cursor.execute('SELECT * FROM usuarios')
             usuarios = cursor.fetchall()
-           
         finally:
             # Liberar el bloqueo de memoria
             lock.release()
@@ -85,23 +82,24 @@ def get_users():
 
 
 #*****************************************************************************
-# Show usuario
+# Get usuario
 #*****************************************************************************
-def get_user():
-
-    email = request.json['email']
+def get_user(email):
 
     def get_user_db(q: queue.Queue):
         # Adquirir el bloqueo de memoria
         lock.acquire()
+
         try:
             cursor.execute('SELECT * FROM usuarios WHERE email = ?', (email,))
             usuario = cursor.fetchone()
+            #print(usuario)
         finally:
             # Liberar el bloqueo de memoria
             lock.release()
         
-        q.put_nowait(usuario)
+        q.put(usuario)
+
 
     # Cola para guardar el resultado del hilo.
     q = queue.Queue()
@@ -111,19 +109,28 @@ def get_user():
     hilo.join()
 
     result = q.get_nowait()
+    print("*********** 112",result)
 
-    data = {}
+    user = {"id":result[0],
+            "name":result[1],
+            "email":result[2],
+            "image":result[3],
+            "rol":result[4],
+            "pin":result[5],
+            "saldo":result[6]}
+    
+
     if result == None:
-        return jsonify({"exist":"false"}), 404
+        return jsonify({}), 404
     else:
-        return jsonify({"exist":"true"}), 200
+        return jsonify(user), 200
 
     
 
 #*****************************************************************************
 # user exist
 #*****************************************************************************
-def user_exist(email):
+def user_not_exist(email):
     try:
         cursor.execute('SELECT * FROM usuarios WHERE email = ?', (email,))
         usuario = cursor.fetchone()
@@ -131,17 +138,16 @@ def user_exist(email):
         return False
 
     if usuario == None:
-        return False
-    if len(usuario) > 0:
         return True
+    if len(usuario) > 0:
+        return False
         
 
 #*****************************************************************************
-# Update usuario
+# Update user saldo
 #*****************************************************************************
-def update_user(id):
-    rol = request.json['rol']
-    pin = request.json['pin']
+def update_user_saldo(id):
+
     saldo = request.json['saldo']
 
     def update_user_db():
@@ -149,9 +155,7 @@ def update_user(id):
         lock.acquire()
 
         try:
-            cursor.execute('''
-                UPDATE usuarios SET rol = ?, pin = ?, saldo = ? WHERE id = ?
-            ''', (rol,pin,saldo,id))
+            cursor.execute('UPDATE usuarios SET saldo = ? WHERE id = ?', (saldo,id))
             conn.commit()
         finally:
             # Liberar el bloqueo de memoria
@@ -161,7 +165,55 @@ def update_user(id):
     hilo.start()
     hilo.join()
 
-    return jsonify({'msg': 'Usuario actualizado correctamente' }), 201
+    return jsonify({'msg': 'Saldo acutualizado' }), 201
+
+#*****************************************************************************
+# Update user pin
+#*****************************************************************************
+def update_user_pin(id):
+
+    pin = request.json['pin']
+
+    def update_user_db():
+        # Adquirir el bloqueo de memoria
+        lock.acquire()
+
+        try:
+            cursor.execute('UPDATE usuarios SET pin = ? WHERE id = ?', (pin,id))
+            conn.commit()
+        finally:
+            # Liberar el bloqueo de memoria
+            lock.release()
+
+    hilo = threading.Thread(target=update_user_db, name="Update user - hilo")
+    hilo.start()
+    hilo.join()
+
+    return jsonify({'msg': 'Pin acutualizado' }), 201
+
+#*****************************************************************************
+# Update user rol
+#*****************************************************************************
+def update_user_rol(id):
+
+    rol = request.json['rol']
+
+    def update_user_db():
+        # Adquirir el bloqueo de memoria
+        lock.acquire()
+
+        try:
+            cursor.execute('UPDATE usuarios SET rol = ? WHERE id = ?', (rol,id))
+            conn.commit()
+        finally:
+            # Liberar el bloqueo de memoria
+            lock.release()
+
+    hilo = threading.Thread(target=update_user_db, name="Update user - hilo")
+    hilo.start()
+    hilo.join()
+
+    return jsonify({'msg': 'Saldo acutualizado' }), 201
 
 #*****************************************************************************
 # delete usuario
@@ -184,6 +236,27 @@ def delete_user(id):
     
     return jsonify({'msg': 'Usuario eliminado exitosamente'}), 200
 
+#*****************************************************************************
+# delete usuarios
+#*****************************************************************************
+def delete_all_users():
+    def delete_users_db():
+        # Adquirir el bloqueo de memoria
+        lock.acquire()
+        
+        try:
+            cursor.execute('DELETE FROM usuarios')
+            conn.commit()
+        finally:
+            # Liberar el bloqueo de memoria
+            lock.release()
+    
+    hilo = threading.Thread(target=delete_users_db, name='delete all users - hilo')
+    hilo.start()
+    hilo.join()
+    
+    return jsonify({'msg': 'todos los usuarios han sido borrados'}), 200
+
 
 def Get_Saldo_User(id):
     user_id = request.json['user_id']
@@ -191,7 +264,7 @@ def Get_Saldo_User(id):
     def Get_Saldo_UserDB():
         # Adquirir el bloqueo de memoria
         try:
-            cursor.execute('SELECT Saldo FROM usuarios WHERE id = ?', (user_id))
+            cursor.execute('SELECT saldo FROM usuarios WHERE id = ?', (user_id))
             saldoUsuario = cursor.fetchone()
 
             conn.commit()

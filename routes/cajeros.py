@@ -19,18 +19,17 @@ lock = threading.Lock()
 #*****************************************************************************
 def create_cajero():
 
+    user_email = request.json['email']
+
     #validar usuario
     def validar_usuario():
-        user_email = request.json['user_email']
-        print(user_email)
+        
 
         lock.acquire()
 
         try:
             cursor.execute('''SELECT * FROM usuarios WHERE email = ?''',(user_email,))
             user = cursor.fetchone()
-
-            print(user[4])
 
             #validar que el usuario exista
             if user is None:
@@ -55,7 +54,7 @@ def create_cajero():
             cursor.execute('''
                 INSERT INTO cajeros (state, amount)
                 VALUES (?, ?)
-                ''', ("disponible",10000000))
+                ''', ("Disponible",10000000))
             conn.commit()
         finally:
             # Liberar el bloqueo de memoria

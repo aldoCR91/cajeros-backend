@@ -7,7 +7,7 @@ import threading
 import datetime
 
 from routes.prueba import hello_world
-from routes.user import create_user, get_users, get_user, update_user, delete_user
+from routes.user import create_user, get_users, get_user, update_user_saldo,update_user_pin,update_user_rol, delete_user, delete_all_users
 from routes.cajeros import create_cajero, get_cajeros, get_cajero, update_cajero, delete_cajero
 from routes.depositos import create_deposito, get_depositos , add_deposito
 from routes.retiros import create_retiro, get_retiros , Update_Amount
@@ -91,12 +91,16 @@ app.route('/prueba', methods = ['POST'])(hello_world)
 #*****************************************************************************
 # Creando API rutas de usuarios
 #*****************************************************************************
-app.route('/usuarios', methods = ['POST'])(create_user) # Create nuevo usuario
-app.route('/usuarios', methods = ["GET"])(get_users) # Read usuarios
-app.route("/usuario/<email>", methods = ["GET"])(get_user) # Show usuario
-app.route("/usuario/show", methods = ["POST"])(get_user) # Show usuario 2.0
-app.route('/usuario/<int:id>', methods=['PUT'])(update_user) # Update usuario
-app.route('/usuario/<int:id>', methods=['DELETE'])(delete_user) # delete usuario        
+app.route('/usuarios', methods = ['POST'])(create_user) # Create user
+app.route('/usuarios', methods = ["GET"])(get_users) # Get users
+app.route("/usuario/<email>", methods = ["GET"])(get_user) # get user
+
+app.route('/usuario/update/saldo/<int:id>', methods=['PUT'])(update_user_saldo) # Update usuario saldo 
+app.route('/usuario/update/rol/<int:id>', methods=['PUT'])(update_user_rol) # Update usuario rol
+app.route('/usuario/update/pin/<int:id>', methods=['PUT'])(update_user_pin) # Update usuario pin
+
+app.route('/usuario/<int:id>', methods=['DELETE'])(delete_user) # delete usuario 
+app.route('/usuario/delete/all/users', methods=['DELETE'])(delete_all_users) # delete usuario        
 
 #*****************************************************************************
 # Creando API rutas de cajeros
