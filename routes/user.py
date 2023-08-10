@@ -31,7 +31,7 @@ def create_user():
 
     # Revisar si ya existe un usuario en ese email
     user = user_exist(email=email)
-    print(user)
+    print("user 34" ,user)
 
     def insert_user():
         # Bloquear de memoria
@@ -53,7 +53,7 @@ def create_user():
     
     if(user):
         return jsonify({'ok': False,
-                        'msg': 'Ya existe un usuario con este email'
+                        'msg': 'Ya existe un usuario con este email user 56'
                         }), 401
     else:
         hilo = threading.Thread(target=insert_user, name="Insertar usuario - hilo")
@@ -106,9 +106,9 @@ def get_users():
 #*****************************************************************************
 # Show usuario
 #*****************************************************************************
-def get_user():
+def get_user(email):
 
-    email = request.json['email']
+    # email = request.json['email']
 
     def get_user_db(q: queue.Queue):
         # Adquirir el bloqueo de memoria
@@ -131,7 +131,18 @@ def get_user():
 
     result = q.get_nowait()
 
-    return jsonify(result), 200
+    if result != None:
+        user = {"id": result[0],
+                "name":result[1],
+                "email":result[2],
+                "image":result[3],
+                "rol":result[4],
+                "pin":result[5],
+                "saldo":result[6],
+                "state":result[7]}
+        return jsonify(user), 200
+
+    return jsonify(result), 404
 
     
 

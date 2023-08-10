@@ -107,9 +107,9 @@ def get_cajero(id):
 # Update usuario
 #*****************************************************************************
 def update_cajero(id):
+    
     state = request.json['state']
     amount = request.json['amount']
-    
 
     def update_cajero_db():
         # Adquirir el bloqueo de memoria
@@ -129,6 +129,58 @@ def update_cajero(id):
     hilo.join()
 
     return jsonify({'msg': 'Cajero actualizado correctamente' }), 201
+
+#*****************************************************************************
+# Update cajero state
+#*****************************************************************************
+def update_cajero_state(id):
+    
+    state = request.json['state']
+
+    def update_cajero_db():
+        # Adquirir el bloqueo de memoria
+        lock.acquire()
+
+        try:
+            cursor.execute('''
+                UPDATE cajeros SET state = ? WHERE id = ?
+            ''', (state, id))
+            conn.commit()
+        finally:
+            # Liberar el bloqueo de memoria
+            lock.release()
+
+    hilo = threading.Thread(target=update_cajero_db, name="Update cajero - hilo")
+    hilo.start()
+    hilo.join()
+
+    return jsonify({'msg': 'Estado del cajero actualizado correctamente' }), 201
+
+#*****************************************************************************
+# Update cajero amount
+#*****************************************************************************
+def update_cajero_amount(id):
+    
+    amount = request.json['amount']
+
+    def update_cajero_db():
+        # Adquirir el bloqueo de memoria
+        lock.acquire()
+
+        try:
+            cursor.execute('''
+                UPDATE cajeros SET amount = ? WHERE id = ?
+            ''', (amount, id))
+            conn.commit()
+        finally:
+            # Liberar el bloqueo de memoria
+            lock.release()
+
+    hilo = threading.Thread(target=update_cajero_db, name="Update cajero - hilo")
+    hilo.start()
+    hilo.join()
+
+    return jsonify({'msg': 'Cantidad del cajero actualizado correctamente' }), 201
 
 #*****************************************************************************
 # delete usuario

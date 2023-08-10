@@ -8,7 +8,7 @@ import datetime
 
 from routes.prueba import hello_world
 from routes.user import create_user, get_users, get_user, update_user, delete_user
-from routes.cajeros import create_cajero, get_cajeros, get_cajero, update_cajero, delete_cajero
+from routes.cajeros import create_cajero, get_cajeros, get_cajero, update_cajero, delete_cajero, update_cajero_state, update_cajero_amount
 from routes.depositos import create_deposito, get_depositos
 from routes.retiros import create_retiro, get_retiros
 from routes.transferencias import create_transferencia, get_transferencias
@@ -90,7 +90,7 @@ app.route('/prueba', methods = ['POST'])(hello_world)
 app.route('/usuarios', methods = ['POST'])(create_user) # Create nuevo usuario
 app.route('/usuarios', methods = ["GET"])(get_users) # Read usuarios
 app.route("/usuario/<email>", methods = ["GET"])(get_user) # Show usuario
-app.route("/usuario/show", methods = ["POST"])(get_user) # Show usuario 2.0
+# app.route("/usuario/show", methods = ["POST"])(get_user) # Show usuario 2.0
 app.route('/usuario/<int:id>', methods=['PUT'])(update_user) # Update usuario
 app.route('/usuario/<int:id>', methods=['DELETE'])(delete_user) # delete usuario        
 
@@ -101,6 +101,8 @@ app.route('/cajeros', methods = ["GET"])(get_cajeros) # Read cajeros
 app.route('/cajero', methods = ['POST'])(create_cajero) # Create nuevo cajero
 app.route("/cajero/<int:id>", methods = ["GET"])(get_cajero) # Show cajero
 app.route('/cajero/<int:id>', methods=['PUT'])(update_cajero) # Update cajero
+app.route('/cajero/state/<int:id>', methods=['PUT'])(update_cajero_state) # Update cajero state
+app.route('/cajero/amount/<int:id>', methods=['PUT'])(update_cajero_amount) # Update cajero amount
 app.route('/cajero/<int:id>', methods=['DELETE'])(delete_cajero) # delete cajero
 
 #*****************************************************************************
