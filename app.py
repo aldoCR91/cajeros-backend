@@ -105,16 +105,20 @@ app.route('/usuario/delete/all/users', methods=['DELETE'])(delete_all_users) # d
 #*****************************************************************************
 # Creando API rutas de cajeros
 #*****************************************************************************
-app.route('/cajero', methods = ['POST'])(create_cajero) # Create nuevo cajero
-app.route('/cajeros', methods = ["GET"])(get_cajeros) # Read cajeros
-app.route("/cajero/<int:id>", methods = ["GET"])(get_cajero) # Show cajero
-app.route('/cajero/<int:id>', methods=['PUT'])(update_cajero) # Update cajero
+app.route('/cajero', methods = ['POST'])(create_cajero) # Create cajero
+app.route('/cajeros', methods = ["GET"])(get_cajeros) # Get cajeros
+app.route("/cajero/<int:id>", methods = ["GET"])(get_cajero) # Get cajero
+
+app.route('/cajero/<int:id>', methods=['PUT'])(update_cajero) # Update cajero state
+app.route('/cajero/<int:id>', methods=['PUT'])(update_cajero) # Update cajero amount
+
 app.route('/cajero/<int:id>', methods=['DELETE'])(delete_cajero) # delete cajero
+app.route('/cajeros', methods=['DELETE'])(delete_cajero) # delete cajeros
 
 #*****************************************************************************
 # Creando API rutas de depositos
 #*****************************************************************************
-app.route('/deposito', methods = ['POST'])(add_deposito) # Agrega Deposito a Tabla depositos
+app.route('/deposito', methods = ['POST'])(add_deposito) # Agrega Deposito a Tabla deposito
 app.route('/depositos', methods = ["GET"])(get_depositos) # Read depositos
 app.route('/depositos', methods = ["POST"])(create_deposito) # Create deposito
 
