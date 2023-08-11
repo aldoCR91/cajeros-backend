@@ -15,7 +15,7 @@ cursor = conn.cursor()
 lock = threading.Lock()
 
 #*****************************************************************************
-# Create nuevo usuario
+# Create cajero
 #*****************************************************************************
 def create_cajero():
 
@@ -24,7 +24,6 @@ def create_cajero():
     #validar usuario
     def validar_usuario():
         
-
         lock.acquire()
 
         try:
@@ -35,7 +34,6 @@ def create_cajero():
             if user is None:
                 return {"status":"error",
                         "msg":"usuario no encontrado"}
-
 
             #validar que el usuario sea admin
             if user[4] != "admin":
@@ -52,9 +50,9 @@ def create_cajero():
 
         try:
             cursor.execute('''
-                INSERT INTO cajeros (state, amount)
-                VALUES (?, ?)
-                ''', ("Disponible",10000000))
+                INSERT INTO cajeros (state, amount, user_id)
+                VALUES (?, ?, ?)
+                ''', ("Disponible",10000000, None))
             conn.commit()
         finally:
             # Liberar el bloqueo de memoria
@@ -63,12 +61,11 @@ def create_cajero():
     hilo = threading.Thread(target=insert_cajero, name="Insertar cajero - hilo")
     hilo.start()
     hilo.join()
-
-    
+ 
     return jsonify({'msg': 'Cajero creado correctamente'}), 201
 
 #*****************************************************************************
-# Read usuarios
+# Get cajeros
 #*****************************************************************************
 def get_cajeros():
 
@@ -101,7 +98,7 @@ def get_cajeros():
 
 
 #*****************************************************************************
-# Show usuario
+# Get cajero
 #*****************************************************************************
 def get_cajero(id):
 
@@ -130,21 +127,21 @@ def get_cajero(id):
 
 
 #*****************************************************************************
-# Update usuario
+# Update cajero
 #*****************************************************************************
 def update_cajero(id):
     state = request.json['state']
     amount = request.json['amount']
+    user_id = request.json['user_id']
     
-
     def update_cajero_db():
         # Adquirir el bloqueo de memoria
         lock.acquire()
 
         try:
             cursor.execute('''
-                UPDATE cajeros SET state = ?, amount = ? WHERE id = ?
-            ''', (state, amount, id))
+                UPDATE cajeros SET state = ?, amount = ?, user_id = ?  WHERE id = ?
+            ''', (state, amount, user_id, id))
             conn.commit()
         finally:
             # Liberar el bloqueo de memoria
@@ -157,7 +154,7 @@ def update_cajero(id):
     return jsonify({'msg': 'Cajero actualizado correctamente' }), 201
 
 #*****************************************************************************
-# delete usuario
+# delete delete
 #*****************************************************************************
 def delete_cajero(id):
     def delete_cajero_db():
