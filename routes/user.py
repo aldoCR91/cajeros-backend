@@ -15,7 +15,7 @@ cursor = conn.cursor()
 lock = threading.Lock()
 
 #*****************************************************************************
-# Create nuevo usuario
+# Create usuario
 #*****************************************************************************
 def create_user():
     name = request.json['name']
@@ -26,22 +26,24 @@ def create_user():
     saldo = request.json['saldo']
 
     def insert_user():
+        
         # Bloquear de memoria
         lock.acquire()
 
         not_exist = user_not_exist(email)
 
-        try:
-            if not_exist:
+        if not_exist:
+            try:
                 cursor.execute('''
                     INSERT INTO usuarios (name, email, image, rol, pin, saldo)
                     VALUES (?, ?, ?, ?, ?, ?)
                     ''', (name, email, image, rol, pin, saldo))
                 conn.commit()
-        finally:
-                # Liberar el bloqueo de memoria
-                lock.release()
-    
+            except:
+                return jsonify({"Error": "Error user 43"})
+                
+        # Liberar el bloqueo de memoria
+        lock.release()
 
     hilo = threading.Thread(target=insert_user, name="Insertar usuario - hilo")
     hilo.start()
@@ -51,7 +53,7 @@ def create_user():
     return jsonify({'mensaje': 'Usuario creado correctamente', }), 201
 
 #*****************************************************************************
-# Read usuarios
+# Get users
 #*****************************************************************************
 def get_users():
 
@@ -82,11 +84,12 @@ def get_users():
 
 
 #*****************************************************************************
-# Get usuario
+# Get user
 #*****************************************************************************
 def get_user(email):
 
     def get_user_db(q: queue.Queue):
+        
         # Adquirir el bloqueo de memoria
         lock.acquire()
 
