@@ -25,33 +25,32 @@ def create_user():
     pin = request.json['pin']
     saldo = request.json['saldo']
 
+    user = get_user(email=email)
+
+    if user:
+        return user
+    
     def insert_user():
         
         # Bloquear de memoria
         lock.acquire()
 
-        not_exist = user_not_exist(email)
-
-        if not_exist:
-            try:
-                cursor.execute('''
-                    INSERT INTO usuarios (name, email, image, rol, pin, saldo)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ''', (name, email, image, rol, pin, saldo))
-                conn.commit()
-            except:
-                return jsonify({"Error": "Error user 43"})
+        try:
+            cursor.execute('''
+                INSERT INTO usuarios (name, email, image, rol, pin, saldo)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ''', (name, email, image, rol, pin, saldo))
+            conn.commit()
+        finally:
+            # Liberar el bloqueo de memoria
+            lock.release()
                 
-        # Liberar el bloqueo de memoria
-        lock.release()
-
+        
     hilo = threading.Thread(target=insert_user, name="Insertar usuario - hilo")
     hilo.start()
     hilo.join()
 
-    
-    return jsonify({'mensaje': 'Usuario creado correctamente', }), 201
-
+    return jsonify(get_user(email=email)), 201
 #*****************************************************************************
 # Get users
 #*****************************************************************************
@@ -81,8 +80,6 @@ def get_users():
     result = q.get_nowait()
 
     return jsonify({'usuarios': result}), 200
-
-
 #*****************************************************************************
 # Get user
 #*****************************************************************************
@@ -103,7 +100,6 @@ def get_user(email):
         
         q.put(usuario)
 
-
     # Cola para guardar el resultado del hilo.
     q = queue.Queue()
 
@@ -112,24 +108,18 @@ def get_user(email):
     hilo.join()
 
     result = q.get_nowait()
-    print("*********** 112",result)
 
-    user = {"id":result[0],
+    if result == None:
+        return {}
+    else:
+        user = {"id":result[0],
             "name":result[1],
             "email":result[2],
             "image":result[3],
             "rol":result[4],
             "pin":result[5],
             "saldo":result[6]}
-    
-
-    if result == None:
-        return jsonify({}), 404
-    else:
-        return jsonify(user), 200
-
-    
-
+        return user
 #*****************************************************************************
 # user exist
 #*****************************************************************************
@@ -143,9 +133,7 @@ def user_not_exist(email):
     if usuario == None:
         return True
     if len(usuario) > 0:
-        return False
-        
-
+        return False    
 #*****************************************************************************
 # Update user saldo
 #*****************************************************************************
@@ -169,7 +157,6 @@ def update_user_saldo(id):
     hilo.join()
 
     return jsonify({'msg': 'Saldo acutualizado' }), 201
-
 #*****************************************************************************
 # Update user pin
 #*****************************************************************************
@@ -193,7 +180,6 @@ def update_user_pin(id):
     hilo.join()
 
     return jsonify({'msg': 'Pin acutualizado' }), 201
-
 #*****************************************************************************
 # Update user rol
 #*****************************************************************************
@@ -217,7 +203,6 @@ def update_user_rol(id):
     hilo.join()
 
     return jsonify({'msg': 'Saldo acutualizado' }), 201
-
 #*****************************************************************************
 # delete usuario
 #*****************************************************************************
@@ -238,7 +223,6 @@ def delete_user(id):
     hilo.join()
     
     return jsonify({'msg': 'Usuario eliminado exitosamente'}), 200
-
 #*****************************************************************************
 # delete usuarios
 #*****************************************************************************
@@ -259,24 +243,4 @@ def delete_all_users():
     hilo.join()
     
     return jsonify({'msg': 'todos los usuarios han sido borrados'}), 200
-
-
-def Get_Saldo_User(id):
-    user_id = request.json['user_id']
-    saldoUsuario = 0
-    def Get_Saldo_UserDB():
-        # Adquirir el bloqueo de memoria
-        try:
-            cursor.execute('SELECT saldo FROM usuarios WHERE id = ?', (user_id))
-            saldoUsuario = cursor.fetchone()
-
-            conn.commit()
-        finally:
-            # Liberar el bloqueo de memoria
-            print("")
-            
-    hilo = threading.Thread(target=Get_Saldo_UserDB, name='get saldo user - hilo')
-    hilo.start()
-    hilo.join()
     
-    return jsonify(saldoUsuario), 200

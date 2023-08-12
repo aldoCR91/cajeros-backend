@@ -92,7 +92,7 @@ app.route('/prueba', methods = ['POST'])(hello_world)
 #*****************************************************************************
 # Creando API rutas de usuarios
 #*****************************************************************************
-app.route('/usuarios', methods = ['POST'])(create_user) # Create user
+app.route('/usuario', methods = ['POST'])(create_user) # Create user
 app.route('/usuarios', methods = ["GET"])(get_users) # Get users
 app.route("/usuario/<email>", methods = ["GET"])(get_user) # get user
 
